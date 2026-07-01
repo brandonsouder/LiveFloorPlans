@@ -1,0 +1,3 @@
+test-env/tests/*.png
+test-env/tests/node_modules/
+test-env/tests/test-results/

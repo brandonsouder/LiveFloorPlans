@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mysql:8.4
+    command: --log-bin-trust-function-creators=1
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    depends_on:
+      - db
+    ports:
+      - "8097:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      - wp_data:/var/www/html
+      - ..:/var/www/html/wp-content/plugins/souder-live-floor-plans
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+
+  wpcli:
+    image: wordpress:cli-php8.3
+    depends_on:
+      - db
+      - wordpress
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wp_data:/var/www/html
+      - ..:/var/www/html/wp-content/plugins/souder-live-floor-plans
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - .:/test-env
+    working_dir: /var/www/html
+
+volumes:
+  db_data:
+  wp_data:
