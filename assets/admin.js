@@ -59,6 +59,12 @@
   const overlayFor = id => state.overlays.find(item => Number(item.suite_id) === Number(id));
   const suiteFor = id => state.suites.find(item => Number(item.id) === Number(id));
   const statusLabel = suite => String((suite && suite.status) || 'unknown').replace(/_/g, ' ');
+  const spaceTypeText = suite => {
+    const values = Array.isArray(suite && suite.space_types)
+      ? suite.space_types
+      : ((suite && suite.space_type) ? [suite.space_type] : []);
+    return values.map(value => String(value || '').trim()).filter(Boolean).join(', ');
+  };
 
   const money = value => {
     const number = Number(value || 0);
@@ -214,13 +220,14 @@
     els.list.replaceChildren();
     suites.forEach(suite => {
       const isMapped = mapped.has(Number(suite.id));
+      const spaceType = spaceTypeText(suite);
       const row = document.createElement('div');
       row.className = 'slfp-suite-row';
       row.classList.toggle('is-active', Number(state.activeSuiteId) === Number(suite.id));
       row.innerHTML = `
         <button type="button" class="slfp-suite-main">
           <strong>Suite ${escapeHtml(suite.suite_number || suite.id)}</strong>
-          <span>${Number(suite.square_feet || 0).toLocaleString()} sq ft · ${escapeHtml(money(suite.monthly_rate))} · ${escapeHtml(statusLabel(suite))}</span>
+          <span>${Number(suite.square_feet || 0).toLocaleString()} sq ft · ${spaceType ? `${escapeHtml(spaceType)} · ` : ''}${escapeHtml(money(suite.monthly_rate))} · ${escapeHtml(statusLabel(suite))}</span>
         </button>
         <button type="button" class="button-link">${isMapped ? 'Remove' : 'Place'}</button>
       `;

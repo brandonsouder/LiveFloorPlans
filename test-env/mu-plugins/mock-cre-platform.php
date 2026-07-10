@@ -146,7 +146,7 @@ add_action(
 		);
 
 		$rows = array(
-			array( 'D1', 80, 425, 'available' ),
+			array( 'D1', 80, 425, 'available', 'Salon / Office' ),
 			array( 'D2', 80, 0, 'available' ),
 			array( 'D3', 200, 950, 'coming_soon' ),
 			array( 'D4', 130, 625, 'leased' ),
@@ -176,7 +176,7 @@ add_action(
 					'square_feet'  => $row[1],
 					'monthly_rate' => $row[2],
 					'base_status'  => $row[3],
-					'best_use'     => 'Salon',
+					'best_use'     => $row[4] ?? 'Salon',
 					'public'       => 1,
 				)
 			);

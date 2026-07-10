@@ -192,6 +192,7 @@ final class SLFP_Renderer {
 					<button type="button" data-slfp-reset aria-label="<?php esc_attr_e( 'Reset view', 'souder-live-floor-plans' ); ?>"><?php esc_html_e( 'Reset', 'souder-live-floor-plans' ); ?></button>
 					<button type="button" data-slfp-zoom-in aria-label="<?php esc_attr_e( 'Zoom in', 'souder-live-floor-plans' ); ?>">+</button>
 				</div>
+				<button type="button" class="slfp-print-button" data-slfp-print><?php esc_html_e( 'Print', 'souder-live-floor-plans' ); ?></button>
 			</div>
 			<div class="slfp-stage" data-slfp-stage>
 				<div class="slfp-canvas" data-slfp-canvas>

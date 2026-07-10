@@ -19,6 +19,12 @@
   const isAvailable = suite => ['available', 'coming_soon'].includes(String((suite && suite.status) || ''));
   const canOpenSuite = suite => Boolean(suite && suite.url && isAvailable(suite));
   const labelPrice = suite => isAvailable(suite) ? money(suite && suite.monthly_rate) : '';
+  const spaceTypeText = suite => {
+    const values = Array.isArray(suite && suite.space_types)
+      ? suite.space_types
+      : ((suite && suite.space_type) ? [suite.space_type] : []);
+    return values.map(value => String(value || '').trim()).filter(Boolean).join(', ');
+  };
   const distance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
   const midpoint = (a, b) => ({ clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 });
 
@@ -55,6 +61,7 @@
     let pinchState = null;
     let gestureMoved = false;
     let suppressClick = false;
+    let printMode = false;
 
     const defaultScale = () => mobileQuery.matches ? 1.35 : 1;
     const clampScale = value => Math.max(minScale, Math.min(maxScale, Number(value.toFixed(3))));
@@ -160,11 +167,13 @@
       root.classList.remove('has-expanded-sheet');
       const price = labelPrice(suite);
       const canOpen = canOpenSuite(suite);
+      const spaceType = spaceTypeText(suite);
       detail.innerHTML = `
         ${canOpen ? '<button type="button" class="slfp-sheet-handle" aria-label="Expand suite page" data-slfp-expand-sheet></button>' : ''}
         <button type="button" class="slfp-sheet-close" aria-label="Close details" data-slfp-close-detail>&times;</button>
         <small>${escapeHtml(statusLabel(suite))}</small>
         <strong>Suite ${escapeHtml(suite.suite_number || suite.id)}</strong>
+        ${spaceType ? `<span class="slfp-space-type">${escapeHtml(spaceType)}</span>` : ''}
         <span>${Number(suite.square_feet || 0).toLocaleString()} sq ft${price ? ` · ${escapeHtml(price)}` : ''}</span>
         ${canOpen ? '<button type="button" class="slfp-sheet-action" data-slfp-open-suite>View Suite Page</button>' : ''}
       `;
@@ -210,9 +219,10 @@
       (data.overlays || []).forEach(overlay => {
         const suite = suites.get(Number(overlay.suite_id)) || {};
         const number = overlay.label_override || suite.suite_number || overlay.suite_number || overlay.suite_id;
-        if (q && !String(number).toLowerCase().includes(q)) return;
-        if (onlyAvailable && !isAvailable(suite)) return;
+        if (!printMode && q && !String(number).toLowerCase().includes(q)) return;
+        if (!printMode && onlyAvailable && !isAvailable(suite)) return;
         const price = labelPrice(suite);
+        const spaceType = spaceTypeText(suite);
         const label = document.createElement('button');
         label.type = 'button';
         label.className = `slfp-label status-${suite.status || 'unknown'}${isAvailable(suite) ? '' : ' is-unavailable'}`;
@@ -221,10 +231,11 @@
         label.style.top = `${overlay.y}%`;
         label.innerHTML = `
           <strong>${escapeHtml(number)}</strong>
+          ${spaceType ? `<small class="slfp-label-use">${escapeHtml(spaceType)}</small>` : ''}
           <small>${Number(suite.square_feet || 0).toLocaleString()} sq ft</small>
           ${price ? `<small>${escapeHtml(price)}</small>` : `<small>${escapeHtml(statusLabel(suite))}</small>`}
         `;
-        label.setAttribute('aria-label', `Suite ${number}, ${statusLabel(suite)}`);
+        label.setAttribute('aria-label', `Suite ${number}${spaceType ? `, ${spaceType}` : ''}, ${statusLabel(suite)}`);
         label.addEventListener('click', event => {
           event.preventDefault();
           event.stopPropagation();
@@ -283,9 +294,32 @@
     const zoomIn = root.querySelector('[data-slfp-zoom-in]');
     const zoomOut = root.querySelector('[data-slfp-zoom-out]');
     const reset = root.querySelector('[data-slfp-reset]');
+    const printButton = root.querySelector('[data-slfp-print]');
     if (zoomIn) zoomIn.addEventListener('click', () => setScale(scale + 0.25));
     if (zoomOut) zoomOut.addEventListener('click', () => setScale(scale - 0.25));
     if (reset) reset.addEventListener('click', resetView);
+    if (printButton) {
+      printButton.addEventListener('click', () => {
+        hideDetail();
+        printMode = true;
+        root.classList.add('is-print-layout');
+        document.body.classList.add('slfp-is-printing');
+        renderLabels();
+        const finishPrint = () => {
+          printMode = false;
+          root.classList.remove('is-print-layout');
+          document.body.classList.remove('slfp-is-printing');
+          renderLabels();
+          applyTransform();
+        };
+        window.addEventListener('afterprint', finishPrint, { once: true });
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            window.print();
+          });
+        });
+      });
+    }
 
     if (search) {
       search.addEventListener('input', event => {

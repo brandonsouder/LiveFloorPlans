@@ -157,6 +157,7 @@ final class SLFP_Suite_Provider {
 
 	private static function normalize_table_row( array $row ): array {
 		$availability = CRE_Domain::suite_availability( (int) $row['id'] );
+		$space_types = self::normalize_space_types( $row['best_use'] ?? null );
 		return array(
 			'id'             => absint( $row['id'] ?? 0 ),
 			'building_id'    => absint( $row['building_id'] ?? 0 ),
@@ -164,6 +165,8 @@ final class SLFP_Suite_Provider {
 			'floor'          => sanitize_text_field( (string) ( $row['floor'] ?? '' ) ),
 			'square_feet'    => absint( $row['square_feet'] ?? 0 ),
 			'monthly_rate'   => (float) ( $row['monthly_rate'] ?? 0 ),
+			'space_type'     => implode( ', ', $space_types ),
+			'space_types'    => $space_types,
 			'status'         => sanitize_key( (string) ( $availability['status'] ?? $row['base_status'] ?? 'unknown' ) ),
 			'derived_status' => sanitize_key( (string) ( $availability['derived_status'] ?? $row['base_status'] ?? 'unknown' ) ),
 			'available_date' => self::nullable_text( $row['available_date'] ?? null ),
@@ -175,6 +178,7 @@ final class SLFP_Suite_Provider {
 
 	private static function normalize_rest_row( array $row ): array {
 		$availability = is_array( $row['availability'] ?? null ) ? $row['availability'] : array();
+		$space_types = self::space_types_from_row( $row );
 		return array(
 			'id'             => absint( $row['id'] ?? 0 ),
 			'building_id'    => absint( $row['building_id'] ?? 0 ),
@@ -182,6 +186,8 @@ final class SLFP_Suite_Provider {
 			'floor'          => sanitize_text_field( (string) ( $row['floor'] ?? '' ) ),
 			'square_feet'    => absint( $row['square_feet'] ?? 0 ),
 			'monthly_rate'   => (float) ( $row['monthly_rate'] ?? 0 ),
+			'space_type'     => implode( ', ', $space_types ),
+			'space_types'    => $space_types,
 			'status'         => sanitize_key( (string) ( $availability['status'] ?? $row['base_status'] ?? 'unknown' ) ),
 			'derived_status' => sanitize_key( (string) ( $availability['derived_status'] ?? $row['base_status'] ?? 'unknown' ) ),
 			'available_date' => self::nullable_text( $row['available_date'] ?? null ),
@@ -206,6 +212,66 @@ final class SLFP_Suite_Provider {
 			'address' => implode( ' · ', $address ),
 			'url'     => ! empty( $row['url'] ) ? esc_url_raw( (string) $row['url'] ) : ( ! empty( $row['post_id'] ) ? esc_url_raw( get_permalink( (int) $row['post_id'] ) ) : '' ),
 		);
+	}
+
+	private static function space_types_from_row( array $row ): array {
+		$values = array();
+		foreach ( array( 'space_types', 'suite_types', 'best_use', 'space_type', 'suite_type', 'use', 'uses', 'type' ) as $key ) {
+			if ( array_key_exists( $key, $row ) ) {
+				$values = array_merge( $values, self::normalize_space_types( $row[ $key ] ) );
+			}
+		}
+		return self::unique_text_values( $values );
+	}
+
+	private static function normalize_space_types( $value ): array {
+		if ( null === $value || '' === $value ) {
+			return array();
+		}
+
+		if ( is_array( $value ) ) {
+			$values = array();
+			foreach ( $value as $item ) {
+				if ( is_array( $item ) ) {
+					$values = array_merge( $values, self::normalize_space_types( $item['name'] ?? $item['label'] ?? $item['value'] ?? $item['title'] ?? '' ) );
+				} else {
+					$values = array_merge( $values, self::normalize_space_types( $item ) );
+				}
+			}
+			return self::unique_text_values( $values );
+		}
+
+		$text = trim( (string) $value );
+		if ( '' === $text ) {
+			return array();
+		}
+
+		if ( '[' === $text[0] || '{' === $text[0] ) {
+			$decoded = json_decode( $text, true );
+			if ( is_array( $decoded ) ) {
+				return self::normalize_space_types( $decoded );
+			}
+		}
+
+		return self::unique_text_values( preg_split( '/\s*(?:,|;|\||\/|\r?\n)\s*/', $text ) ?: array( $text ) );
+	}
+
+	private static function unique_text_values( array $values ): array {
+		$unique = array();
+		$seen = array();
+		foreach ( $values as $value ) {
+			$text = sanitize_text_field( trim( (string) $value ) );
+			if ( '' === $text ) {
+				continue;
+			}
+			$key = strtolower( $text );
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ] = true;
+			$unique[] = $text;
+		}
+		return $unique;
 	}
 
 	private static function nullable_text( $value ): ?string {

@@ -45,6 +45,25 @@
   cursor: pointer;
 }
 
+.slfp-print-button {
+  min-width: 72px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #123c2f;
+  border-radius: 4px;
+  background: #123c2f;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.slfp-print-button:hover,
+.slfp-print-button:focus {
+  background: #0d2d23;
+  color: #fff;
+}
+
 .slfp-stage {
   position: relative;
   display: flex;
@@ -123,6 +142,15 @@
 
 .slfp-label small {
   font-size: 10px;
+}
+
+.slfp-label-use {
+  max-width: 96px;
+  overflow: hidden;
+  color: #315144;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .slfp-label.status-available {
@@ -243,6 +271,12 @@
   color: #4b5b54;
 }
 
+.slfp-detail .slfp-space-type {
+  color: #123c2f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .slfp-sheet-action {
   display: inline-flex;
   justify-content: center;
@@ -334,7 +368,7 @@
 
   .slfp-public-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 6px;
     align-items: center;
     padding: 8px;
@@ -398,6 +432,17 @@
     font-weight: 700;
   }
 
+  .slfp-print-button {
+    justify-self: end;
+    width: 52px;
+    min-width: 52px;
+    min-height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1;
+  }
+
   .slfp-stage {
     min-height: min(65vh, 620px);
     max-height: 720px;
@@ -447,6 +492,18 @@
     display: none;
   }
 
+  .slfp-floor-plan.is-detail-zoom .slfp-label small,
+  .slfp-floor-plan.has-suite-search .slfp-label small {
+    display: block;
+    font-size: 6px;
+    line-height: 1;
+  }
+
+  .slfp-floor-plan.is-detail-zoom .slfp-label-use,
+  .slfp-floor-plan.has-suite-search .slfp-label-use {
+    max-width: 42px;
+  }
+
   .slfp-floor-plan:not(.is-detail-zoom):not(.has-suite-search) .slfp-label.is-unavailable {
     display: none;
   }
@@ -455,5 +512,120 @@
     min-width: 30px;
     min-height: 20px;
     padding: 2px 4px;
+  }
+}
+
+@page {
+  size: landscape;
+  margin: .25in;
+}
+
+@media print {
+  body.slfp-is-printing {
+    background: #fff !important;
+  }
+
+  body.slfp-is-printing #wpadminbar,
+  body.slfp-is-printing .site-header,
+  body.slfp-is-printing .site-footer,
+  body.slfp-is-printing header,
+  body.slfp-is-printing footer,
+  body.slfp-is-printing nav,
+  body.slfp-is-printing .slfp-public-toolbar,
+  body.slfp-is-printing .slfp-detail,
+  body.slfp-is-printing .slfp-stale {
+    display: none !important;
+  }
+
+  body.slfp-is-printing .slfp-floor-plan {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    color: #000 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.slfp-is-printing .slfp-stage {
+    display: block !important;
+    overflow: visible !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border: 0 !important;
+    background: #fff !important;
+    cursor: default !important;
+    touch-action: auto !important;
+    user-select: auto !important;
+  }
+
+  body.slfp-is-printing .slfp-canvas {
+    width: 100% !important;
+    transform: none !important;
+    transition: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.slfp-is-printing .slfp-canvas img {
+    width: 100% !important;
+    max-height: 7in !important;
+    object-fit: contain !important;
+  }
+
+  body.slfp-is-printing .slfp-label-layer,
+  body.slfp-is-printing .slfp-label,
+  body.slfp-is-printing .slfp-label small {
+    display: block !important;
+  }
+
+  body.slfp-is-printing .slfp-label {
+    min-width: .42in !important;
+    min-height: .18in !important;
+    max-width: .62in !important;
+    padding: .025in .035in !important;
+    border-width: .5pt !important;
+    border-radius: 2pt !important;
+    box-shadow: none !important;
+    color: #000 !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(.74) !important;
+    z-index: 2 !important;
+  }
+
+  body.slfp-is-printing .slfp-label.status-available,
+  body.slfp-is-printing .slfp-label.status-coming_soon {
+    min-width: .58in !important;
+    max-width: .78in !important;
+    background: #fff !important;
+  }
+
+  body.slfp-is-printing .slfp-label strong {
+    display: block !important;
+    font-size: 6.5pt !important;
+    font-weight: 900 !important;
+    line-height: .95 !important;
+  }
+
+  body.slfp-is-printing .slfp-label small {
+    font-size: 5pt !important;
+    font-weight: 700 !important;
+    line-height: .95 !important;
+    white-space: nowrap !important;
+  }
+
+  body.slfp-is-printing .slfp-label-use {
+    max-width: .72in !important;
+    color: #000 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.slfp-is-printing .slfp-label.is-unavailable {
+    background: rgba(255, 255, 255, .92) !important;
+    color: #555 !important;
+    transform: translate(-50%, -50%) scale(.58) !important;
   }
 }

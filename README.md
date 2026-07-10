@@ -50,6 +50,8 @@ REST fallback paginates with `per_page=50` until all pages are loaded, so buildi
   "floor": "1",
   "square_feet": 140,
   "monthly_rate": 750,
+  "space_type": "Salon, Office",
+  "space_types": ["Salon", "Office"],
   "status": "available",
   "derived_status": "available",
   "available_date": null,
@@ -62,6 +64,6 @@ REST fallback paginates with `per_page=50` until all pages are loaded, so buildi
 ## Notes
 
 - Coordinates are stored as percentages relative to the floor-plan image.
-- Public labels always show unit number and square footage. Available spaces also show price, with `Call for price` used when no price is set.
+- Public labels show unit number, square footage, and available uses where space allows. Available spaces also show price, with `Call for price` used when no price is set.
 - Public pages read from this plugin's cached payload, not from the live CRE endpoint on every visitor request.
 - If sync fails, the last successful cache remains available and the admin screen shows the sync error.
